@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOVELY LETTER!</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #ff69b4, #ffb6c1);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            overflow-x: hidden;
+            transition: background 0.5s;
+        }
+        body.theme-fun { background: linear-gradient(to bottom, #ff4500, #ffa500); }
+        body.theme-romantic { background: linear-gradient(to bottom, #8b0000, #dc143c); }
+        h1 { font-size: 3em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        p { font-size: 1.2em; margin-bottom: 20px; }
+        button {
+            background: #ff1493;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        button:hover { background: #ff69b4; transform: scale(1.05); }
+        .hearts { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .heart { position: absolute; color: #ff1493; font-size: 2em; animation: float 5s linear infinite; cursor: pointer; pointer-events: auto; }
+        @keyframes float { 0% { transform: translateY(100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
+        #game-info { font-size: 1.2em; margin: 20px 0; }
+        #level-info { font-size: 1em; color: #ffd700; }
+        #surprise, #question-section, #love-calc, #slideshow, #music-player { display: none; margin-top: 30px; }
+        #yes-response, #no-response { display: none; font-size: 1.5em; margin-top: 20px; }
+        #love-result { font-size: 2em; color: #ffd700; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        img { max-width: 300px; height: auto; border-radius: 10px; margin: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
+        .slideshow { display: flex; justify-content: center; flex-wrap: wrap; }
+        .slide { display: none; } .slide.active { display: block; }
+        audio { margin-top: 10px; }
+        .confetti { position: absolute; width: 10px; height: 10px; background: #ffd700; animation: confetti-fall 3s linear infinite; }
+        @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); } 100% { transform: translateY(100vh) rotate(360deg); } }
+        #share-link { margin-top: 20px; font-size: 1.2em; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>HI, MY LOVELY SYAFA DEAN!</h1>
+    <p>I'm So Sorry For The Chicken Noodle, I Just Made This Website Just For You! 💕</p>
+    
+    <!-- Theme Switcher -->
+    <div>
+        <button onclick="changeTheme('default')">Default</button>
+        <button onclick="changeTheme('fun')">Fun Theme</button>
+        <button onclick="changeTheme('romantic')">Romantic Theme</button>
+    </div>
+    
+    <!-- Game Section -->
+    <div id="game-info">Hearts Collected: <span id="score">0</span> | Level: <span id="level">1</span></div>
+    <div id="level-info">Collect 10 hearts to level up! Click them fast!</div>
+    <button onclick="showSurprise()">DANGER!</button>
+    <div id="surprise">💖 I Love You More Than Wakidi's! 💖</div>
+    
+    <!-- Question Section -->
+    <div id="question-section">
+        <p>WILL YOU LOVE ME FOREVER? 💕</p>
+        <button onclick="answerQuestion('yes')">Yes, I Will! ❤️</button>
+        <button onclick="answerQuestion('no')">No, I Love Mr.Wakidi 😢</button>
+    </div>
+    
+    <!-- Responses with Photos -->
+    <div id="yes-response">
+        <p>YAY! HERE'S SOME OF OUR CUTE MEMORIES:</p>
+        <div class="slideshow" id="yes-slideshow">
+            <img class="slide active" src="foto1.jpg" alt="Memory 1">
+            <img class="slide" src="foto2.jpg" alt="Memory 2">
+            <img class="slide" src="foto3.jpg" alt="Memory 3">
+        </div>
+        <button onclick="nextSlide('yes')">Next Photo</button>
+    </div>
+    <div id="no-response">
+        <p>ARE YOU SURE?:</p>
+        <div class="slideshow" id="no-slideshow">
+            <img class="slide active" src="poto1.jpg" alt="Cute 1">
+            <img class="slide" src="poto2.jpg" alt="Cute 2">
+        </div>
+        <button onclick="nextSlide('no')">Next Photo</button>
+    </div>
+    
+    <!-- Love Calculator -->
+    <div id="love-calc">
+        <p>LET'S CALCULATE OUR LOVE PERCENTAGE!(please dont fill another name):</p>
+        <input type="text" id="name1" placeholder="Yalu" style="padding: 10px; margin: 5px;">
+        <input type="text" id="name2" placeholder="Dean" style="padding: 10px; margin: 5px;">
+        <button onclick="calculateLove()">Calculate Love %</button>
+        <div id="love-result"></div>
+    </div>
+    
+    <!-- Music Player -->
+    <div id="music-player">
+        <p>Play some romantic tunes:</p>
+        <audio controls>
+            <source src="Song1.mp3" type="audio/mpeg"> <!-- Replace with your audio file -->
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+    
+    <!-- Share Feature -->
+    <div id="share-link"></div>
+    
+    <div class="hearts" id="hearts"></div>
+    
+    <script>
+        let score = 0, level = 1, maxScorePerLevel = 10, totalHearts = 0;
+        let confettiActive = false;
+        const themes = { default: '', fun: 'theme-fun', romantic: 'theme-romantic' };
+        
+        // Theme Changer
+        function changeTheme(theme) {
+            document.body.className = themes[theme] || '';
+        }
+        
+        // Floating Hearts Game with Levels
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDelay = Math.random() * 5 + 's';
+            heart.style.animationDuration = (6 - level * 0.5) + 's'; // Faster as levels increase
+            
+            heart.addEventListener('click', () => {
+                score++;
+                totalHearts++;
+                document.getElementById('score').textContent = score;
+                heart.remove();
+                
+                if (score >= maxScorePerLevel) {
+                    level++;
+                    score = 0;
+                    document.getElementById('level').textContent = level;
+                    document.getElementById('level-info').textContent = `Level ${level} unlocked! Collect ${maxScorePerLevel} more hearts.`;
+                    triggerConfetti();
+                    
+                    if (level === 2) {
+                        document.getElementById('question-section').style.display = 'block';
+                        document.getElementById('love-calc').style.display = 'block';
+                    }
+                    if (level === 3) {
+                        document.getElementById('music-player').style.display = 'block';
+                        generateShareLink();
+                    }
+                }
+            });
+            
+            document.getElementById('hearts').appendChild(heart);
+            setTimeout(() => { if (heart.parentNode) heart.remove(); }, 6000);
+        }
+        
+        setInterval(createHeart, 300); // More frequent hearts
+        
+        // Confetti Effect
+        function triggerConfetti() {
+            if (confettiActive) return;
+            confettiActive = true;
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }
+            setTimeout(() => confettiActive = false, 3000);
+        }
+        
+        // Other Functions
+        function showSurprise() { document.getElementById('surprise').style.display = 'block'; }
+        
+        function answerQuestion(answer) {
+            if (answer === 'yes') {
+                document.getElementById('yes-response').style.display = 'block';
+                document.getElementById('no-response').style.display = 'none';
+            } else {
+                document.getElementById('no-response').style.display = 'block';
+                document.getElementById('yes-response').style.display = 'none';
+            }
+            document.getElementById('question-section').style.display = 'none';
+        }
+        
+        function nextSlide(type) {
+            const slides = document.querySelectorAll(`#${type}-slideshow .slide`);
+            let activeIndex = Array.from(slides).findIndex(slide => slide.classList.contains('active'));
+            slides[activeIndex].classList.remove('active');
+            activeIndex = (activeIndex + 1) % slides.length;
+            slides[activeIndex].classList.add('active');
+        }
+        
+        function calculateLove() {
+            const name1 = document.getElementById('name1').value;
+            const name2 = document.getElementById('name2').value;
+            if (!name1 || !name2) return alert('Enter both names!');
+            const percentage = 100; // Fun random calc
+            document.getElementById('love-result').textContent = `${name1} and ${name2}: ${percentage}% Love! 💘`;
+        }
+        
+        function generateShareLink() {
+            const link = `${window.location.href}?hearts=${totalHearts}&level=${level}`;
+            document.getElementById('share-link').innerHTML = `Share your score: <a href="${link}" target="_blank">${link}</a>`;
+        }
+        
+        // Load from URL params (for sharing)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('hearts')) {
+            totalHearts = parseInt(urlParams.get('hearts'));
+            level = parseInt(urlParams.get('level'));
+            document.getElementById('level').textContent = level;
+            document.getElementById('score').textContent = totalHearts % maxScorePerLevel;
+        }
+    </script>
+</body>
+</html>
